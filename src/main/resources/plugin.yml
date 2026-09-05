@@ -1,0 +1,6 @@
+name: CallXPEconomy
+version: ${version}
+main: com.callxpeconomy.CallXPEconomyPlugin
+api-version: '1.21'
+author: Calladot
+softdepend: [Vault]

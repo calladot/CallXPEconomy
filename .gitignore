@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+
+# Minecraft server and plugin runtime data
+run/
+plugins/
+*.db
+*.db-shm
+*.db-wal
+accounts.yml
+
+# IDE and editor files
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db

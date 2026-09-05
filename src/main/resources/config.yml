@@ -1,0 +1,11 @@
+storage:
+  # Supported values: sqlite, yaml
+  type: sqlite
+  sqlite:
+    file: accounts.db
+  yaml:
+    file: accounts.yml
+
+currency:
+  singular: XP
+  plural: XP

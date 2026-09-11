@@ -1,5 +1,6 @@
 package com.callxpeconomy.vault;
 
+import com.callxpeconomy.PlayerLogFilter;
 import com.callxpeconomy.storage.AccountRepository;
 import com.callxpeconomy.storage.AdjustmentResult;
 import com.callxpeconomy.xp.XpPoints;
@@ -17,12 +18,15 @@ public final class XpEconomyProvider implements Economy {
     private final AccountRepository accounts;
     private final String singular;
     private final String plural;
+    private final PlayerLogFilter logFilter;
 
-    public XpEconomyProvider(Plugin plugin, AccountRepository accounts, String singular, String plural) {
+    public XpEconomyProvider(Plugin plugin, AccountRepository accounts, String singular, String plural,
+                             PlayerLogFilter logFilter) {
         this.plugin = plugin;
         this.accounts = accounts;
         this.singular = singular;
         this.plural = plural;
+        this.logFilter = logFilter;
     }
 
     @Override
@@ -135,7 +139,7 @@ public final class XpEconomyProvider implements Economy {
 
     @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
-        return adjust(player, amount, -1);
+        return adjust(player, amount, -1, "withdraw");
     }
 
     @Override
@@ -157,7 +161,7 @@ public final class XpEconomyProvider implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
-        return adjust(player, amount, 1);
+        return adjust(player, amount, 1, "deposit");
     }
 
     @Override
@@ -257,21 +261,34 @@ public final class XpEconomyProvider implements Economy {
         return createPlayerAccount(player);
     }
 
-    private EconomyResponse adjust(OfflinePlayer player, double amount, int direction) {
+    private EconomyResponse adjust(OfflinePlayer player, double amount, int direction, String action) {
         if (!isWholeNonNegative(amount)) {
-            return failed(getBalance(player), "XP amounts must be finite, non-negative whole numbers.");
+            double balance = getBalance(player);
+            log(player, action + " rejected: amount=" + amount + ", reason=amount must be a finite, non-negative whole number"
+                    + ", balance=" + balance);
+            return failed(balance, "XP amounts must be finite, non-negative whole numbers.");
         }
         long points = (long) amount;
         try {
             AdjustmentResult result = accounts.adjust(player.getUniqueId(), accountName(player), direction * points);
             if (!result.successful()) {
+                log(player, action + " rejected: amount=" + points + ", reason=insufficient XP, balance=" + result.balance());
                 return failed(result.balance(), "Insufficient XP.");
             }
             applyToOnlinePlayer(player, result.balance());
+            log(player, action + " successful: amount=" + points + ", balance=" + result.balance());
             return new EconomyResponse(amount, result.balance(), EconomyResponse.ResponseType.SUCCESS, null);
         } catch (IllegalStateException exception) {
             plugin.getLogger().warning("Could not change XP balance for " + player.getUniqueId() + ": " + exception.getMessage());
-            return failed(getBalance(player), "Storage operation failed.");
+            double balance = getBalance(player);
+            log(player, action + " rejected: amount=" + points + ", reason=storage operation failed, balance=" + balance);
+            return failed(balance, "Storage operation failed.");
+        }
+    }
+
+    private void log(OfflinePlayer player, String message) {
+        if (logFilter.shouldLog(player.getName())) {
+            plugin.getLogger().info("Vault " + message + ", player=" + accountName(player));
         }
     }
 

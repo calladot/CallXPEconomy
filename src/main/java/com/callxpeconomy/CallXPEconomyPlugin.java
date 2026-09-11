@@ -30,7 +30,9 @@ public final class CallXPEconomyPlugin extends JavaPlugin {
             return;
         }
 
-        getServer().getPluginManager().registerEvents(new PlayerXpSyncListener(this, accounts), this);
+        PlayerLogFilter vaultLogFilter = PlayerLogFilter.from(getConfig().getConfigurationSection("logging.vault"));
+        PlayerLogFilter xpSyncLogFilter = PlayerLogFilter.from(getConfig().getConfigurationSection("logging.xp-sync"));
+        getServer().getPluginManager().registerEvents(new PlayerXpSyncListener(this, accounts, xpSyncLogFilter), this);
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             getLogger().warning("Vault was not found; the XP economy provider will not be registered.");
             return;
@@ -38,7 +40,7 @@ public final class CallXPEconomyPlugin extends JavaPlugin {
 
         XpEconomyProvider provider = new XpEconomyProvider(this, accounts,
                 getConfig().getString("currency.singular", "XP"),
-                getConfig().getString("currency.plural", "XP"));
+            getConfig().getString("currency.plural", "XP"), vaultLogFilter);
         getServer().getServicesManager().register(Economy.class, provider, this, ServicePriority.Highest);
         getLogger().info("Registered Vault XP economy using " + getConfig().getString("storage.type") + " storage.");
     }

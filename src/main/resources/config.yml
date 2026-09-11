@@ -9,3 +9,17 @@ storage:
 currency:
   singular: XP
   plural: XP
+
+logging:
+  # Console audit records for deposit, withdrawal, and rejected Vault requests.
+  vault:
+    # Set to true to log this category for every player.
+    all-players: false
+    # Player names to log when all-players is false. Name matching ignores case.
+    players: []
+  # Console audit records for XP synchronization at join, XP change, and quit.
+  xp-sync:
+    # Set to true to log this category for every player.
+    all-players: false
+    # Player names to log when all-players is false. Name matching ignores case.
+    players: []

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.callxpeconomy"
-version = "0.1.2"
+version = providers.gradleProperty("pluginVersion").getOrElse("0.0.0-verify")
 
 repositories {
     mavenCentral()
